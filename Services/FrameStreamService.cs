@@ -81,6 +81,7 @@ namespace StreamBridgeLive.Services
                     };
 
                     var alertsPayload = BuildAlerts(scene, latencyMs, droppedFrames, modelStatus);
+                    Console.WriteLine($"Streaming frame {frameId} | Source: {scene.Source} | FPS: {fps} | Latency: {latencyMs}");
 
                     await _hub.Clients.All.SendAsync("Frame", framePayload);
                     await _hub.Clients.All.SendAsync("Telemetry", telemetryPayload);
