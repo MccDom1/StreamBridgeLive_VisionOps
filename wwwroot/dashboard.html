@@ -4,244 +4,448 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StreamBridge VisionOps Dashboard</title>
+
     <style>
         :root {
-            --bg: #07101f;
+            --bg: #060b16;
             --panel: #0f172a;
+            --panel-2: #0b1220;
             --border: #1e293b;
             --text: #e5e7eb;
             --muted: #94a3b8;
             --accent: #38bdf8;
+            --accent-soft: rgba(56, 189, 248, 0.18);
             --good: #22c55e;
             --warn: #f59e0b;
             --bad: #ef4444;
+            --purple: #a78bfa;
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
         }
 
         * {
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             margin: 0;
+            padding: 0;
             font-family: "Segoe UI", Roboto, Arial, sans-serif;
-            background: radial-gradient(900px 420px at 12% 0%, rgba(56,189,248,.18), transparent 60%), radial-gradient(700px 360px at 85% 10%, rgba(34,197,94,.08), transparent 60%), var(--bg);
+            background: radial-gradient(900px 420px at 10% 0%, rgba(56, 189, 248, 0.18), transparent 58%), radial-gradient(700px 360px at 88% 12%, rgba(34, 197, 94, 0.08), transparent 58%), linear-gradient(180deg, #050a15 0%, #07101f 100%);
             color: var(--text);
+            min-height: 100vh;
         }
 
-        header {
+        body {
+            overflow-x: hidden;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 16px;
             padding: 18px 24px;
             border-bottom: 1px solid var(--border);
-            background: rgba(2,6,23,.78);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(12px);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
         }
 
         .logo {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
             display: grid;
             place-items: center;
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, rgba(56,189,248,.20), rgba(34,197,94,.10));
+            font-weight: 900;
             color: var(--accent);
-            font-weight: 800;
-        }
-
-        .small {
-            color: var(--muted);
-            font-size: 12px;
-        }
-
-        .btn {
-            text-decoration: none;
-            color: var(--text);
             border: 1px solid var(--border);
-            background: rgba(15,23,42,.55);
-            padding: 10px 14px;
-            border-radius: 12px;
+            background: linear-gradient(180deg, rgba(56, 189, 248, 0.2), rgba(34, 197, 94, 0.08));
+            box-shadow: 0 0 26px rgba(56, 189, 248, 0.14);
+            flex-shrink: 0;
+        }
+
+        .brand-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.6px;
+            line-height: 1;
+        }
+
+        .brand-subtitle {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(30,41,59,.9);
-            padding: 8px 12px;
+            gap: 10px;
+            padding: 10px 14px;
             border-radius: 999px;
-            background: rgba(2,6,23,.28);
-            font-size: 12px;
+            border: 1px solid rgba(30, 41, 59, 0.95);
+            background: rgba(2, 6, 23, 0.4);
             color: var(--muted);
+            font-size: 13px;
+            white-space: nowrap;
         }
 
         .dot {
-            width: 9px;
-            height: 9px;
+            width: 10px;
+            height: 10px;
             border-radius: 999px;
             background: var(--bad);
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.08);
+            flex-shrink: 0;
         }
 
             .dot.ok {
                 background: var(--good);
+                box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08);
             }
 
-        .wrap {
-            max-width: 1440px;
+        .btn {
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--border);
+            background: rgba(15, 23, 42, 0.62);
+            padding: 10px 14px;
+            border-radius: 12px;
+            display: inline-block;
+            transition: 0.18s ease;
+        }
+
+            .btn:hover {
+                border-color: rgba(56, 189, 248, 0.48);
+                transform: translateY(-1px);
+            }
+
+        .shell {
+            max-width: 1580px;
             margin: 0 auto;
             padding: 20px;
+        }
+
+        .hero-strip {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .hero-card,
+        .sub-card,
+        .panel {
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(2, 6, 23, 0.46));
+            box-shadow: var(--shadow);
+        }
+
+        .hero-card {
+            padding: 22px;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .hero-card::after {
+                content: "";
+                position: absolute;
+                inset: auto -120px -120px auto;
+                width: 260px;
+                height: 260px;
+                border-radius: 999px;
+                background: radial-gradient(circle, rgba(56, 189, 248, 0.12), transparent 65%);
+                pointer-events: none;
+            }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: -0.4px;
+        }
+
+        .hero-copy {
+            color: var(--muted);
+            line-height: 1.75;
+            font-size: 14px;
+            max-width: 900px;
+        }
+
+        .hero-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .hero-badge {
+            font-size: 12px;
+            color: var(--text);
+            border: 1px solid rgba(30, 41, 59, 0.9);
+            background: rgba(2, 6, 23, 0.28);
+            padding: 8px 12px;
+            border-radius: 999px;
+        }
+
+        .sub-card {
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .sub-title {
+            font-size: 12px;
+            color: var(--accent);
+            font-weight: 800;
+            letter-spacing: 0.45px;
+            text-transform: uppercase;
+        }
+
+        .sub-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(30, 41, 59, 0.85);
+            background: rgba(2, 6, 23, 0.26);
+        }
+
+        .sub-stat-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .sub-stat-value {
+            font-weight: 800;
+            color: var(--text);
         }
 
         .metrics {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 14px;
+            margin-bottom: 18px;
         }
 
-        .metric {
-            background: rgba(2,6,23,.30);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 14px;
+        .metric-card {
+            border: 1px solid rgba(30, 41, 59, 0.9);
+            border-radius: 18px;
+            background: linear-gradient(180deg, rgba(8, 14, 28, 0.88), rgba(2, 6, 23, 0.5));
+            padding: 16px;
+            box-shadow: var(--shadow);
+            min-height: 128px;
+            position: relative;
+            overflow: hidden;
         }
 
-            .metric .label {
-                font-size: 12px;
-                color: var(--muted);
+            .metric-card::before {
+                content: "";
+                position: absolute;
+                inset: 0 auto 0 0;
+                width: 4px;
+                background: linear-gradient(180deg, rgba(56, 189, 248, 0.9), rgba(56, 189, 248, 0.2));
             }
 
-            .metric .value {
-                font-size: 28px;
-                font-weight: 800;
-                margin-top: 6px;
-            }
+        .metric-label {
+            color: var(--muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.45px;
+            font-weight: 700;
+        }
 
-        .grid {
+        .metric-value {
+            margin-top: 10px;
+            font-size: 40px;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .metric-note {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .main-grid {
             display: grid;
-            grid-template-columns: 1.15fr .95fr .8fr;
+            grid-template-columns: 1.2fr 0.95fr 0.78fr;
             gap: 18px;
+            align-items: start;
         }
 
         .panel {
-            background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(2,6,23,.45));
-            border: 1px solid var(--border);
-            border-radius: 18px;
             padding: 16px;
-            box-shadow: 0 14px 34px rgba(0,0,0,.28);
         }
 
             .panel h2 {
                 margin: 0 0 12px;
                 font-size: 13px;
                 color: var(--muted);
-                letter-spacing: .3px;
+                letter-spacing: 0.45px;
                 text-transform: uppercase;
             }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1.2fr .9fr .7fr;
-            gap: 18px;
-        }
-
-        .panel {
-            background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(2,6,23,.45));
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: 16px;
-        }
-
-            .panel h2 {
-                margin: 0 0 10px;
-                font-size: 13px;
-                color: var(--muted);
-            }
-
-        .visual {
+        .visual-stage {
             position: relative;
             width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 16px;
+            aspect-ratio: 16 / 9;
+            border-radius: 18px;
             overflow: hidden;
-            border: 1px solid rgba(30,41,59,.9);
-            background: #0b1220;
-            margin-bottom: 14px;
+            border: 1px solid rgba(30, 41, 59, 0.9);
+            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.08), transparent 55%), #09111f;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.015);
         }
 
-            .visual img {
+            .visual-stage img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+                display: block;
+                background: #09111f;
             }
 
         .overlay {
             position: absolute;
             inset: 0;
+            pointer-events: none;
         }
 
         .bbox {
             position: absolute;
-            border: 2px solid #38bdf8;
-            box-shadow: 0 0 0 1px rgba(56,189,248,.25), 0 0 10px rgba(56,189,248,.35);
+            border: 2px solid var(--accent);
             border-radius: 8px;
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.22), 0 0 14px rgba(56, 189, 248, 0.22);
         }
 
             .bbox .tag {
                 position: absolute;
-                top: -26px;
+                top: -28px;
                 left: 0;
-                background: rgba(2,6,23,.92);
-                color: #e5e7eb;
-                border: 1px solid rgba(56,189,248,.45);
+                background: rgba(2, 6, 23, 0.95);
+                color: var(--text);
+                border: 1px solid rgba(56, 189, 248, 0.42);
                 padding: 4px 8px;
                 font-size: 11px;
                 border-radius: 8px;
                 white-space: nowrap;
             }
 
-        .info-grid {
+        .vision-info-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 12px;
+            margin-top: 14px;
         }
 
+        .info-card,
         .item {
-            border: 1px solid rgba(30,41,59,.85);
-            background: rgba(2,6,23,.28);
+            border: 1px solid rgba(30, 41, 59, 0.86);
+            background: rgba(2, 6, 23, 0.28);
             border-radius: 14px;
             padding: 12px;
         }
 
-        .chart {
-            height: 200px;
+        .info-label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .info-value {
+            font-weight: 800;
+            margin-top: 6px;
+            font-size: 16px;
+        }
+
+        .chart-block + .chart-block {
+            margin-top: 12px;
+        }
+
+        .chart-label {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .chart-shell {
+            height: 220px;
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(30, 41, 59, 0.9);
+            background: linear-gradient(180deg, rgba(2, 6, 23, 0.3), rgba(2, 6, 23, 0.18));
+            overflow: hidden;
         }
 
         canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
 
         .pre {
             white-space: pre-wrap;
+            word-break: break-word;
             margin: 0;
-            font-family: Consolas, monospace;
+            font-family: Consolas, "Courier New", monospace;
             font-size: 12px;
+            line-height: 1.55;
+            color: #dbe7f6;
+        }
+
+        .stack {
+            display: grid;
+            gap: 12px;
         }
 
         .list {
             display: grid;
             gap: 10px;
+        }
+
+        .detection-card {
+            display: grid;
+            gap: 6px;
+        }
+
+        .detection-title {
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        .confidence-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.14);
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--good));
+            border-radius: 999px;
         }
 
         .alert-info {
@@ -260,8 +464,56 @@
             border-left: 4px solid var(--good);
         }
 
-        @media (max-width: 1100px) {
-            .grid {
+        .alert-title {
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .timeline-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+        }
+
+            .timeline-row:last-child {
+                border-bottom: none;
+            }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--purple);
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .timeline-text {
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .timeline-time {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 2px;
+        }
+
+        .empty {
+            color: var(--muted);
+            font-size: 13px;
+            padding: 4px 0;
+        }
+
+        @media (max-width: 1180px) {
+            .hero-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .main-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -270,207 +522,477 @@
             }
         }
 
-        @media (max-width: 700px) {
+        @media (max-width: 760px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .topbar-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
             .metrics {
                 grid-template-columns: 1fr;
             }
 
-            .info-grid {
+            .vision-info-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .brand-title {
+                font-size: 22px;
             }
         }
     </style>
 </head>
-
 <body>
-
-    <header>
+    <header class="topbar">
         <div class="brand">
             <div class="logo">SB</div>
             <div>
-                <div style="font-weight:800;">StreamBridge VisionOps</div>
-                <div style="font-size:12px;color:var(--muted);">AI Telemetry Dashboard</div>
+                <div class="brand-title">StreamBridge VisionOps</div>
+                <div class="brand-subtitle">AI telemetry dashboard • real-time simulated vision operations</div>
             </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:12px;">
-            <div class="status-pill"><span id="connDot" class="dot"></span><span id="connText">Connecting...</span></div>
+        <div class="topbar-right">
+            <div class="status-pill">
+                <span id="connDot" class="dot"></span>
+                <span id="connText">Connecting...</span>
+            </div>
             <a class="btn" href="/">Back to Landing</a>
         </div>
     </header>
 
-    <div class="wrap">
+    <main class="shell">
+        <section class="hero-strip">
+            <div class="hero-card">
+                <div class="hero-title">Live operational awareness for AI-enabled visual systems</div>
+                <div class="hero-copy">
+                    This dashboard streams scene-level detections, system telemetry, and dynamic alerts from a simulated
+                    computer vision pipeline powered by ASP.NET Core and SignalR. It is designed to feel like an operator-facing
+                    monitoring console that can evolve into live ONNX or computer vision inference at production scale.
+                </div>
+                <div class="hero-badges">
+                    <div class="hero-badge">SignalR WebSockets</div>
+                    <div class="hero-badge">Frame telemetry</div>
+                    <div class="hero-badge">Detection overlays</div>
+                    <div class="hero-badge">Operational alerting</div>
+                    <div class="hero-badge">AI-ready architecture</div>
+                </div>
+            </div>
 
-        <div class="metrics">
-            <div class="metric"><div class="label">FPS</div><div id="fps" class="value">--</div></div>
-            <div class="metric"><div class="label">Latency</div><div id="latency" class="value">--</div></div>
-            <div class="metric"><div class="label">Dropped</div><div id="dropped" class="value">--</div></div>
-            <div class="metric"><div class="label">Detections</div><div id="active" class="value">--</div></div>
-        </div>
+            <div class="sub-card">
+                <div class="sub-title">System Snapshot</div>
+                <div class="sub-stat">
+                    <span class="sub-stat-label">Hub Route</span>
+                    <span class="sub-stat-value">/streamhub</span>
+                </div>
+                <div class="sub-stat">
+                    <span class="sub-stat-label">Streaming Mode</span>
+                    <span id="streamMode" class="sub-stat-value">Initializing</span>
+                </div>
+                <div class="sub-stat">
+                    <span class="sub-stat-label">Current Scene</span>
+                    <span id="sceneSummary" class="sub-stat-value">Waiting...</span>
+                </div>
+                <div class="sub-stat">
+                    <span class="sub-stat-label">Top Detection</span>
+                    <span id="topSummary" class="sub-stat-value">Waiting...</span>
+                </div>
+            </div>
+        </section>
 
-        <div class="grid">
+        <section class="metrics">
+            <div class="metric-card">
+                <div class="metric-label">Inference FPS</div>
+                <div id="fpsValue" class="metric-value">--</div>
+                <div class="metric-note">Frames processed per second</div>
+            </div>
 
-            <div class="panel">
+            <div class="metric-card">
+                <div class="metric-label">Latency (ms)</div>
+                <div id="latencyValue" class="metric-value">--</div>
+                <div class="metric-note">Transport and simulated processing delay</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Dropped Frames</div>
+                <div id="droppedValue" class="metric-value">--</div>
+                <div class="metric-note">Frame loss or pipeline instability</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Active Detections</div>
+                <div id="activeValue" class="metric-value">--</div>
+                <div class="metric-note">Objects currently detected in the scene</div>
+            </div>
+        </section>
+
+        <section class="main-grid">
+            <section class="panel">
                 <h2>Vision Feed</h2>
-                <div class="visual">
-                    <img id="scene" />
+
+                <div class="visual-stage">
+                    <img id="sceneImage" alt="Scene feed" />
                     <div id="overlay" class="overlay"></div>
                 </div>
 
-                <div class="info-grid">
-                    <div class="item">
-                        <div class="small">Source</div>
-                        <div id="sourceText" style="font-weight:800;margin-top:6px;">--</div>
+                <div class="vision-info-grid">
+                    <div class="info-card">
+                        <div class="info-label">Source</div>
+                        <div id="sourceText" class="info-value">--</div>
                     </div>
-                    <div class="item">
-                        <div class="small">Top Class</div>
-                        <div id="topClassText" style="font-weight:800;margin-top:6px;">--</div>
+
+                    <div class="info-card">
+                        <div class="info-label">Top Class</div>
+                        <div id="topClassText" class="info-value">--</div>
                     </div>
-                    <div class="item">
-                        <div class="small">Model Status</div>
-                        <div id="modelStatusText" style="font-weight:800;margin-top:6px;">--</div>
+
+                    <div class="info-card">
+                        <div class="info-label">Model Status</div>
+                        <div id="modelStatusText" class="info-value">--</div>
                     </div>
+                </div>
+
+                <div class="item" style="margin-top:12px;">
+                    <div class="info-label">Recent Frame Timeline</div>
+                    <div id="timelineList" style="margin-top:8px;"></div>
                 </div>
             </section>
 
             <section class="panel">
                 <h2>Performance Trends</h2>
 
+                <div class="chart-block">
+                    <div class="chart-label">FPS (last 40 samples)</div>
+                    <div class="chart-shell">
+                        <canvas id="fpsChart" width="700" height="220"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-block">
+                    <div class="chart-label">Latency (last 40 samples)</div>
+                    <div class="chart-shell">
+                        <canvas id="latencyChart" width="700" height="220"></canvas>
+                    </div>
+                </div>
+
                 <div class="item">
-                    <div class="small" style="margin-bottom:8px;">FPS (last 40 samples)</div>
-                    <div class="chart"><canvas id="fpsChart" width="700" height="220"></canvas></div>
+                    <div class="info-label">Latest Frame Payload</div>
+                    <pre id="frameJson" class="pre" style="margin-top:8px;">Waiting for frame...</pre>
                 </div>
 
-                <div class="item" style="margin-top:12px;">
-                    <div class="small" style="margin-bottom:8px;">Latency (last 40 samples)</div>
-                    <div class="chart"><canvas id="latencyChart" width="700" height="220"></canvas></div>
-                </div>
-
-                <div class="item" style="margin-top:12px;">
-                    <div class="small" style="margin-bottom:8px;">Latest Frame Payload</div>
-                    <pre id="frameJson" class="pre">Waiting for frame...</pre>
+                <div class="item">
+                    <div class="info-label">Telemetry Payload</div>
+                    <pre id="telemetryJson" class="pre" style="margin-top:8px;">Waiting for telemetry...</pre>
                 </div>
             </section>
 
             <section class="panel">
                 <h2>Alerts & Detection Summary</h2>
 
-                <div class="item">
-                    <div class="small">Stream Quality</div>
-                    <div id="qualityText" style="font-weight:800;margin-top:6px;">--</div>
-                </div>
+                <div class="stack">
+                    <div class="item">
+                        <div class="info-label">Stream Quality</div>
+                        <div id="qualityText" class="info-value">--</div>
+                    </div>
 
-                <div class="item" style="margin-top:12px;">
-                    <div class="small">Detections</div>
-                    <div id="detectionsList" class="list" style="margin-top:10px;"></div>
-                </div>
+                    <div class="item">
+                        <div class="info-label">Detections</div>
+                        <div id="detectionsList" class="list" style="margin-top:10px;"></div>
+                    </div>
 
-                <div class="item" style="margin-top:12px;">
-                    <div class="small">Live Alerts</div>
-                    <div id="alertsList" class="list" style="margin-top:10px;"></div>
+                    <div class="item">
+                        <div class="info-label">Live Alerts</div>
+                        <div id="alertsList" class="list" style="margin-top:10px;"></div>
+                    </div>
                 </div>
             </section>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
-
     <script>
-        const conn = document.getElementById("conn");
-        const dot = document.getElementById("dot");
+        const connText = document.getElementById("connText");
+        const connDot = document.getElementById("connDot");
 
-        const fps = document.getElementById("fps");
-        const latency = document.getElementById("latency");
-        const dropped = document.getElementById("dropped");
-        const active = document.getElementById("active");
+        const fpsValue = document.getElementById("fpsValue");
+        const latencyValue = document.getElementById("latencyValue");
+        const droppedValue = document.getElementById("droppedValue");
+        const activeValue = document.getElementById("activeValue");
 
-        const scene = document.getElementById("scene");
+        const sourceText = document.getElementById("sourceText");
+        const topClassText = document.getElementById("topClassText");
+        const modelStatusText = document.getElementById("modelStatusText");
+        const qualityText = document.getElementById("qualityText");
+
+        const sceneSummary = document.getElementById("sceneSummary");
+        const topSummary = document.getElementById("topSummary");
+        const streamMode = document.getElementById("streamMode");
+
+        const sceneImage = document.getElementById("sceneImage");
         const overlay = document.getElementById("overlay");
-        const alerts = document.getElementById("alerts");
-        const telemetry = document.getElementById("telemetry");
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/streamhub")
-            .withAutomaticReconnect()
-            .build();
+        const frameJson = document.getElementById("frameJson");
+        const telemetryJson = document.getElementById("telemetryJson");
 
-        connection.on("Frame", f => {
-            scene.src = f.imageUrl;
-            active.textContent = f.detections.length;
+        const detectionsList = document.getElementById("detectionsList");
+        const alertsList = document.getElementById("alertsList");
+        const timelineList = document.getElementById("timelineList");
+
+        const fpsSeries = [];
+        const latencySeries = [];
+        const frameTimeline = [];
+        const MAX_POINTS = 40;
+        const MAX_TIMELINE = 8;
+
+        function updateConnection(connected, text) {
+            connText.textContent = text;
+            connDot.classList.toggle("ok", connected);
+            streamMode.textContent = connected ? "Live Streaming" : text;
+        }
+
+        function setEmptyState(target, message) {
+            target.innerHTML = `<div class="empty">${message}</div>`;
+        }
 
         function createDetectionCard(detection) {
+            const percent = Math.round(detection.confidence * 100);
             const el = document.createElement("div");
-            el.className = "item";
+            el.className = "item detection-card";
             el.innerHTML = `
-            <div style="font-weight:700;">${detection.label}</div>
-            <div class="small" style="margin-top:4px;">Confidence: ${(detection.confidence * 100).toFixed(0)}%</div>
+            <div class="detection-title">${detection.label}</div>
+            <div class="small">Confidence: ${percent}%</div>
+            <div class="confidence-bar">
+              <div class="confidence-fill" style="width:${percent}%"></div>
+            </div>
           `;
             return el;
         }
 
+        function renderDetections(detections) {
+            detectionsList.innerHTML = "";
+            if (!detections || detections.length === 0) {
+                setEmptyState(detectionsList, "No active detections.");
+                return;
+            }
+
+            detections.forEach(d => detectionsList.appendChild(createDetectionCard(d)));
+        }
+
         function renderAlerts(alerts) {
             alertsList.innerHTML = "";
+            if (!alerts || alerts.length === 0) {
+                setEmptyState(alertsList, "No alerts at this time.");
+                return;
+            }
+
             alerts.forEach(alert => {
-                const el = document.createElement("div");
                 const severityClass =
                     alert.severity.toLowerCase() === "critical" ? "alert-critical" :
                         alert.severity.toLowerCase() === "warning" ? "alert-warning" :
                             alert.severity.toLowerCase() === "status" ? "alert-status" :
                                 "alert-info";
 
+                const el = document.createElement("div");
                 el.className = `item ${severityClass}`;
                 el.innerHTML = `
-              <div style="font-weight:700;">${alert.severity}</div>
-              <div class="small" style="margin-top:6px;">${alert.message}</div>
+              <div class="alert-title">${alert.severity}</div>
+              <div class="small">${alert.message}</div>
             `;
                 alertsList.appendChild(el);
             });
         }
 
-        function renderDetections(detections) {
-            detectionsList.innerHTML = "";
-            detections.forEach(d => detectionsList.appendChild(createDetectionCard(d)));
-        }
-
         function renderBoxes(detections) {
             overlay.innerHTML = "";
-            f.detections.forEach(d => {
+
+            if (!detections || detections.length === 0) {
+                return;
+            }
+
+            detections.forEach(d => {
                 const box = document.createElement("div");
                 box.className = "bbox";
-                box.style.left = d.x + "%";
-                box.style.top = d.y + "%";
-                box.style.width = d.width + "%";
-                box.style.height = d.height + "%";
+                box.style.left = `${d.x}%`;
+                box.style.top = `${d.y}%`;
+                box.style.width = `${d.width}%`;
+                box.style.height = `${d.height}%`;
+
+                const tag = document.createElement("div");
+                tag.className = "tag";
+                tag.textContent = `${d.label} ${Math.round(d.confidence * 100)}%`;
+
+                box.appendChild(tag);
                 overlay.appendChild(box);
             });
-        });
+        }
 
-        connection.on("Telemetry", t => {
-            fps.textContent = t.fps;
-            latency.textContent = t.latencyMs;
-            dropped.textContent = t.droppedFrames;
-            telemetry.textContent = JSON.stringify(t);
-        });
+        function drawLineChart(canvasId, values, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
 
-        connection.on("Alerts", a => {
-            alerts.innerHTML = "";
-            a.forEach(x => {
-                const div = document.createElement("div");
-                div.className = "item";
-                div.textContent = x.message;
-                alerts.appendChild(div);
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.strokeStyle = "rgba(148,163,184,0.18)";
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i < 5; i++) {
+                const y = (h / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            if (!values.length) return;
+
+            let min = Math.min(...values);
+            let max = Math.max(...values);
+            if (min === max) {
+                min -= 1;
+                max += 1;
+            }
+
+            const pad = 18;
+            const usableW = w - pad * 2;
+            const usableH = h - pad * 2;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            values.forEach((value, index) => {
+                const x = pad + usableW * (index / Math.max(values.length - 1, 1));
+                const t = (value - min) / (max - min);
+                const y = pad + usableH * (1 - t);
+
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             });
+
+            ctx.stroke();
+
+            ctx.fillStyle = "#e5e7eb";
+            ctx.font = "14px Segoe UI";
+            ctx.fillText(String(values[values.length - 1]), pad, pad - 4);
+        }
+
+        function pushTimeline(frame) {
+            frameTimeline.unshift({
+                time: frame.timestamp,
+                source: frame.source,
+                count: frame.detections.length
+            });
+
+            if (frameTimeline.length > MAX_TIMELINE) {
+                frameTimeline.pop();
+            }
+
+            renderTimeline();
+        }
+
+        function renderTimeline() {
+            timelineList.innerHTML = "";
+
+            if (!frameTimeline.length) {
+                setEmptyState(timelineList, "No frame events yet.");
+                return;
+            }
+
+            frameTimeline.forEach(item => {
+                const row = document.createElement("div");
+                row.className = "timeline-row";
+                row.innerHTML = `
+              <div class="timeline-dot"></div>
+              <div>
+                <div class="timeline-time">${item.time}</div>
+                <div class="timeline-text">${item.source} • ${item.count} detections</div>
+              </div>
+            `;
+                timelineList.appendChild(row);
+            });
+        }
+
+        setEmptyState(detectionsList, "Waiting for detections...");
+        setEmptyState(alertsList, "Waiting for alerts...");
+        setEmptyState(timelineList, "Waiting for frame events...");
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streamhub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("Frame", frame => {
+            sceneImage.src = frame.imageUrl;
+            sourceText.textContent = frame.source || "--";
+            sceneSummary.textContent = frame.source || "Waiting...";
+            activeValue.textContent = frame.detections ? frame.detections.length : 0;
+
+            frameJson.textContent = JSON.stringify(frame, null, 2);
+
+            renderBoxes(frame.detections || []);
+            renderDetections(frame.detections || []);
+            pushTimeline(frame);
         });
 
-        connection.start()
-            .then(() => {
-                conn.textContent = "Connected";
-                dot.classList.add("ok");
-            })
-            .catch(() => {
-                conn.textContent = "Failed to connect";
-            });
+        connection.on("Telemetry", telemetry => {
+            fpsValue.textContent = telemetry.fps ?? "--";
+            latencyValue.textContent = telemetry.latencyMs ?? "--";
+            droppedValue.textContent = telemetry.droppedFrames ?? "--";
+            topClassText.textContent = telemetry.topClass || "--";
+            topSummary.textContent = telemetry.topClass || "Waiting...";
+            modelStatusText.textContent = telemetry.modelStatus || "--";
+            qualityText.textContent = telemetry.streamQuality || "--";
+
+            telemetryJson.textContent = JSON.stringify(telemetry, null, 2);
+
+            if (typeof telemetry.fps === "number") {
+                fpsSeries.push(telemetry.fps);
+                if (fpsSeries.length > MAX_POINTS) fpsSeries.shift();
+                drawLineChart("fpsChart", fpsSeries, "#38bdf8");
+            }
+
+            if (typeof telemetry.latencyMs === "number") {
+                latencySeries.push(telemetry.latencyMs);
+                if (latencySeries.length > MAX_POINTS) latencySeries.shift();
+                drawLineChart("latencyChart", latencySeries, "#22c55e");
+            }
+        });
+
+        connection.on("Alerts", alerts => {
+            renderAlerts(alerts || []);
+        });
+
+        connection.onreconnecting(() => {
+            updateConnection(false, "Reconnecting...");
+        });
+
+        connection.onreconnected(() => {
+            updateConnection(true, "Connected");
+        });
+
+        connection.onclose(() => {
+            updateConnection(false, "Disconnected");
+        });
+
+        async function start() {
+            try {
+                await connection.start();
+                updateConnection(true, "Connected");
+            } catch (error) {
+                console.error(error);
+                updateConnection(false, "Connection Failed");
+                setTimeout(start, 2500);
+            }
+        }
+
+        start();
     </script>
-
 </body>
 </html>
