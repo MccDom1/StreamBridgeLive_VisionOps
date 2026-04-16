@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
-using StreamBridgeLive.Hubs;
+using StreamBridgeLive_VisionOps.Hubs;
 
-namespace StreamBridgeLive.Services
+namespace StreamBridgeLive_VisionOps.Services
 {
     // Phase 2 MVP:
     // This service simulates an AI vision pipeline using generic scenes.
@@ -81,6 +81,7 @@ namespace StreamBridgeLive.Services
                     };
 
                     var alertsPayload = BuildAlerts(scene, latencyMs, droppedFrames, modelStatus);
+                    Console.WriteLine($"Streaming frame {frameId} | Source: {scene.Source} | FPS: {fps} | Latency: {latencyMs}");
 
                     await _hub.Clients.All.SendAsync("Frame", framePayload);
                     await _hub.Clients.All.SendAsync("Telemetry", telemetryPayload);

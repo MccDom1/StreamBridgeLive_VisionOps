@@ -106,22 +106,22 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 12px;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
-        .metric-card {
+        .metric {
             background: rgba(2,6,23,.30);
-            border: 1px solid rgba(30,41,59,.9);
+            border: 1px solid var(--border);
             border-radius: 14px;
             padding: 14px;
         }
 
-            .metric-card .label {
+            .metric .label {
                 font-size: 12px;
                 color: var(--muted);
             }
 
-            .metric-card .value {
+            .metric .value {
                 font-size: 28px;
                 font-weight: 800;
                 margin-top: 6px;
@@ -149,7 +149,26 @@
                 text-transform: uppercase;
             }
 
-        .visual-stage {
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr .9fr .7fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(2,6,23,.45));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+            .panel h2 {
+                margin: 0 0 10px;
+                font-size: 13px;
+                color: var(--muted);
+            }
+
+        .visual {
             position: relative;
             width: 100%;
             aspect-ratio: 16/9;
@@ -160,17 +179,15 @@
             margin-bottom: 14px;
         }
 
-            .visual-stage img {
+            .visual img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                display: block;
             }
 
         .overlay {
             position: absolute;
             inset: 0;
-            pointer-events: none;
         }
 
         .bbox {
@@ -207,11 +224,7 @@
         }
 
         .chart {
-            height: 220px;
-            width: 100%;
-            border-radius: 14px;
-            border: 1px solid rgba(30,41,59,.9);
-            background: rgba(2,6,23,.28);
+            height: 200px;
         }
 
         canvas {
@@ -268,13 +281,15 @@
         }
     </style>
 </head>
+
 <body>
+
     <header>
         <div class="brand">
             <div class="logo">SB</div>
             <div>
                 <div style="font-weight:800;">StreamBridge VisionOps</div>
-                <div class="small">AI telemetry dashboard MVP</div>
+                <div style="font-size:12px;color:var(--muted);">AI Telemetry Dashboard</div>
             </div>
         </div>
 
@@ -285,18 +300,20 @@
     </header>
 
     <div class="wrap">
+
         <div class="metrics">
-            <div class="metric-card"><div class="label">Inference FPS</div><div id="fpsValue" class="value">--</div></div>
-            <div class="metric-card"><div class="label">Latency (ms)</div><div id="latencyValue" class="value">--</div></div>
-            <div class="metric-card"><div class="label">Dropped Frames</div><div id="droppedValue" class="value">--</div></div>
-            <div class="metric-card"><div class="label">Active Detections</div><div id="activeValue" class="value">--</div></div>
+            <div class="metric"><div class="label">FPS</div><div id="fps" class="value">--</div></div>
+            <div class="metric"><div class="label">Latency</div><div id="latency" class="value">--</div></div>
+            <div class="metric"><div class="label">Dropped</div><div id="dropped" class="value">--</div></div>
+            <div class="metric"><div class="label">Detections</div><div id="active" class="value">--</div></div>
         </div>
 
         <div class="grid">
-            <section class="panel">
+
+            <div class="panel">
                 <h2>Vision Feed</h2>
-                <div class="visual-stage">
-                    <img id="sceneImage" alt="Scene feed" />
+                <div class="visual">
+                    <img id="scene" />
                     <div id="overlay" class="overlay"></div>
                 </div>
 
@@ -357,34 +374,29 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+
     <script>
-        const connText = document.getElementById("connText");
-        const connDot = document.getElementById("connDot");
+        const conn = document.getElementById("conn");
+        const dot = document.getElementById("dot");
 
-        const fpsValue = document.getElementById("fpsValue");
-        const latencyValue = document.getElementById("latencyValue");
-        const droppedValue = document.getElementById("droppedValue");
-        const activeValue = document.getElementById("activeValue");
+        const fps = document.getElementById("fps");
+        const latency = document.getElementById("latency");
+        const dropped = document.getElementById("dropped");
+        const active = document.getElementById("active");
 
-        const sourceText = document.getElementById("sourceText");
-        const topClassText = document.getElementById("topClassText");
-        const modelStatusText = document.getElementById("modelStatusText");
-        const qualityText = document.getElementById("qualityText");
-
-        const sceneImage = document.getElementById("sceneImage");
+        const scene = document.getElementById("scene");
         const overlay = document.getElementById("overlay");
-        const frameJson = document.getElementById("frameJson");
-        const detectionsList = document.getElementById("detectionsList");
-        const alertsList = document.getElementById("alertsList");
+        const alerts = document.getElementById("alerts");
+        const telemetry = document.getElementById("telemetry");
 
-        const fpsSeries = [];
-        const latencySeries = [];
-        const MAX_POINTS = 40;
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streamhub")
+            .withAutomaticReconnect()
+            .build();
 
-        function updateConnection(connected, text) {
-            connText.textContent = text;
-            connDot.classList.toggle("ok", connected);
-        }
+        connection.on("Frame", f => {
+            scene.src = f.imageUrl;
+            active.textContent = f.detections.length;
 
         function createDetectionCard(detection) {
             const el = document.createElement("div");
@@ -422,125 +434,43 @@
 
         function renderBoxes(detections) {
             overlay.innerHTML = "";
-
-            detections.forEach(d => {
+            f.detections.forEach(d => {
                 const box = document.createElement("div");
                 box.className = "bbox";
-                box.style.left = `${d.x}%`;
-                box.style.top = `${d.y}%`;
-                box.style.width = `${d.width}%`;
-                box.style.height = `${d.height}%`;
-
-                const tag = document.createElement("div");
-                tag.className = "tag";
-                tag.textContent = `${d.label} ${(d.confidence * 100).toFixed(0)}%`;
-
-                box.appendChild(tag);
+                box.style.left = d.x + "%";
+                box.style.top = d.y + "%";
+                box.style.width = d.width + "%";
+                box.style.height = d.height + "%";
                 overlay.appendChild(box);
             });
-        }
+        });
 
-        function drawLineChart(canvasId, values, color) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext("2d");
-            const w = canvas.width;
-            const h = canvas.height;
+        connection.on("Telemetry", t => {
+            fps.textContent = t.fps;
+            latency.textContent = t.latencyMs;
+            dropped.textContent = t.droppedFrames;
+            telemetry.textContent = JSON.stringify(t);
+        });
 
-            ctx.clearRect(0, 0, w, h);
-
-            ctx.strokeStyle = "rgba(148,163,184,0.25)";
-            ctx.lineWidth = 1;
-
-            for (let i = 1; i < 5; i++) {
-                const y = (h / 5) * i;
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(w, y);
-                ctx.stroke();
-            }
-
-            if (!values.length) return;
-
-            let min = Math.min(...values);
-            let max = Math.max(...values);
-            if (min === max) { min -= 1; max += 1; }
-
-            const pad = 18;
-            const usableW = w - pad * 2;
-            const usableH = h - pad * 2;
-
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-
-            values.forEach((value, index) => {
-                const x = pad + usableW * (index / Math.max(values.length - 1, 1));
-                const t = (value - min) / (max - min);
-                const y = pad + usableH * (1 - t);
-                if (index === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
+        connection.on("Alerts", a => {
+            alerts.innerHTML = "";
+            a.forEach(x => {
+                const div = document.createElement("div");
+                div.className = "item";
+                div.textContent = x.message;
+                alerts.appendChild(div);
             });
-
-            ctx.stroke();
-
-            ctx.fillStyle = "#e5e7eb";
-            ctx.font = "15px Segoe UI";
-            ctx.fillText(String(values[values.length - 1]), pad, pad - 2);
-        }
-
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/streamhub")
-            .withAutomaticReconnect()
-            .build();
-
-        connection.on("Frame", frame => {
-            sceneImage.src = frame.imageUrl;
-            sourceText.textContent = frame.source;
-            activeValue.textContent = frame.detections.length;
-            frameJson.textContent = JSON.stringify(frame, null, 2);
-
-            renderBoxes(frame.detections);
-            renderDetections(frame.detections);
         });
 
-        connection.on("Telemetry", telemetry => {
-            fpsValue.textContent = telemetry.fps;
-            latencyValue.textContent = telemetry.latencyMs;
-            droppedValue.textContent = telemetry.droppedFrames;
-            topClassText.textContent = telemetry.topClass;
-            modelStatusText.textContent = telemetry.modelStatus;
-            qualityText.textContent = telemetry.streamQuality;
-
-            fpsSeries.push(telemetry.fps);
-            if (fpsSeries.length > MAX_POINTS) fpsSeries.shift();
-
-            latencySeries.push(telemetry.latencyMs);
-            if (latencySeries.length > MAX_POINTS) latencySeries.shift();
-
-            drawLineChart("fpsChart", fpsSeries, "#38bdf8");
-            drawLineChart("latencyChart", latencySeries, "#22c55e");
-        });
-
-        connection.on("Alerts", alerts => {
-            renderAlerts(alerts);
-        });
-
-        connection.onreconnecting(() => updateConnection(false, "Reconnecting..."));
-        connection.onreconnected(() => updateConnection(true, "Connected"));
-        connection.onclose(() => updateConnection(false, "Disconnected"));
-
-        async function start() {
-            try {
-                await connection.start();
-                updateConnection(true, "Connected");
-            } catch (error) {
-                updateConnection(false, "Connection Failed");
-                console.error(error);
-                setTimeout(start, 2000);
-            }
-        }
-
-        start();
+        connection.start()
+            .then(() => {
+                conn.textContent = "Connected";
+                dot.classList.add("ok");
+            })
+            .catch(() => {
+                conn.textContent = "Failed to connect";
+            });
     </script>
+
 </body>
 </html>
