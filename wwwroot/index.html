@@ -274,3 +274,201 @@
     </footer>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StreamBridge</title>
+    <style>
+        :root {
+            --bg: #070b18;
+            --panel: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent2: #22c55e;
+        }
+
+        body {
+            margin: 0;
+            font-family: Segoe UI,Roboto,Arial,sans-serif;
+            background: radial-gradient(900px 500px at 15% 10%, rgba(56,189,248,.22), transparent 60%), var(--bg);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 1150px;
+            margin: 0 auto;
+            padding: 28px;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(56,189,248,.20), rgba(34,197,94,.10));
+            font-weight: 800;
+            color: var(--accent);
+        }
+
+        .btn {
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,.55);
+            padding: 12px 16px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+            .btn.primary {
+                background: linear-gradient(90deg, rgba(56,189,248,.22), rgba(34,197,94,.16));
+                border-color: rgba(56,189,248,.35);
+            }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 22px;
+            align-items: center;
+            padding: 24px 0 40px;
+        }
+
+        h1 {
+            font-size: 48px;
+            line-height: 1.05;
+            margin: 0 0 12px;
+        }
+
+        p {
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .card {
+            background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(2,6,23,.45));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 14px 40px rgba(0,0,0,.35);
+        }
+
+        .mini {
+            display: grid;
+            gap: 12px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border: 1px solid rgba(30,41,59,.8);
+            background: rgba(2,6,23,.28);
+            border-radius: 14px;
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 16px;
+            margin-top: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .hero {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 38px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="nav">
+            <div class="brand">
+                <div class="logo">SB</div>
+                <div>
+                    <div style="font-weight:800;">StreamBridge VisionOps</div>
+                    <div class="small">AI vision telemetry MVP</div>
+                </div>
+            </div>
+            <a class="btn primary" href="/dashboard.html">Open Dashboard →</a>
+        </div>
+
+        <section class="hero">
+            <div>
+                <h1>Real-time AI-style monitoring, built for .NET.</h1>
+                <p>
+                    StreamBridge VisionOps is a polished MVP dashboard that simulates an AI vision pipeline using
+                    generic imagery, structured detections, live telemetry, and SignalR-powered streaming.
+                    It demonstrates the monitoring layer that would sit around real ONNX or deep learning inference systems.
+                </p>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:16px;">
+                    <a class="btn primary" href="/dashboard.html">Launch Live Dashboard</a>
+                    <a class="btn" href="https://github.com/MccDom1/StreamBridge" target="_blank" rel="noreferrer">View Repo</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <div style="font-weight:800;margin-bottom:12px;">Current MVP Includes</div>
+                <div class="mini">
+                    <div class="row"><span>Generic scene imagery</span><span class="small">Visual-first MVP</span></div>
+                    <div class="row"><span>Mock detection overlays</span><span class="small">AI-ready format</span></div>
+                    <div class="row"><span>Live FPS / latency / drops</span><span class="small">SignalR stream</span></div>
+                    <div class="row"><span>Live alerts panel</span><span class="small">Operational UX</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid">
+            <div class="card">
+                <div style="color:#38bdf8;font-weight:700;margin-bottom:8px;">Phase 1</div>
+                <div style="font-weight:800;">Real-Time Telemetry Architecture</div>
+                <p>Established ASP.NET Core + SignalR live streaming infrastructure and browser-based telemetry delivery.</p>
+            </div>
+            <div class="card">
+                <div style="color:#38bdf8;font-weight:700;margin-bottom:8px;">Phase 2 MVP</div>
+                <div style="font-weight:800;">VisionOps User Experience</div>
+                <p>Introduces AI-style visuals, scene rotation, detections, alerts, and model-facing telemetry panels.</p>
+            </div>
+            <div class="card">
+                <div style="color:#38bdf8;font-weight:700;margin-bottom:8px;">Next MVP</div>
+                <div style="font-weight:800;">Real ONNX Inference</div>
+                <p>Swap simulated detections with real ONNX Runtime outputs while keeping the same dashboard architecture.</p>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

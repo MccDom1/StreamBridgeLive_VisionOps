@@ -269,142 +269,650 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
     <script>
-  // ---------- UI refs ----------
-  const connEl = document.getElementById("conn");
-  const dotEl = document.getElementById("dot");
-  const fpsEl = document.getElementById("fps");
-  const latencyEl = document.getElementById("latency");
-  const droppedEl = document.getElementById("dropped");
-  const frameEl = document.getElementById("frame");
-  const telemetryEl = document.getElementById("telemetry");
+        // ---------- UI refs ----------
+        const connEl = document.getElementById("conn");
+        const dotEl = document.getElementById("dot");
+        const fpsEl = document.getElementById("fps");
+        const latencyEl = document.getElementById("latency");
+        const droppedEl = document.getElementById("dropped");
+        const frameEl = document.getElementById("frame");
+        const telemetryEl = document.getElementById("telemetry");
 
-  // ---------- Simple chart helper ----------
-  // Draws a line chart on a canvas from an array of numeric values.
-  function drawLineChart(canvas, values) {
-    const ctx = canvas.getContext("2d");
-    const w = canvas.width, h = canvas.height;
+        // ---------- Simple chart helper ----------
+        // Draws a line chart on a canvas from an array of numeric values.
+        function drawLineChart(canvas, values) {
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width, h = canvas.height;
 
-    // Clear
-    ctx.clearRect(0, 0, w, h);
+            // Clear
+            ctx.clearRect(0, 0, w, h);
 
-    // Draw grid (subtle)
-    ctx.globalAlpha = 0.22;
-    ctx.strokeStyle = "#94a3b8";
-    ctx.lineWidth = 1;
+            // Draw grid (subtle)
+            ctx.globalAlpha = 0.22;
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 1;
 
-    const gridLines = 5;
-    for (let i = 1; i < gridLines; i++) {
-      const y = (h / gridLines) * i;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
-      ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
+            const gridLines = 5;
+            for (let i = 1; i < gridLines; i++) {
+                const y = (h / gridLines) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
 
-    if (!values.length) return;
+            if (!values.length) return;
 
-    // Compute min/max for scaling
-    let min = Math.min(...values);
-    let max = Math.max(...values);
-    if (min === max) { min -= 1; max += 1; }
+            // Compute min/max for scaling
+            let min = Math.min(...values);
+            let max = Math.max(...values);
+            if (min === max) { min -= 1; max += 1; }
 
-    const pad = 18;
-    const usableW = w - pad*2;
-    const usableH = h - pad*2;
+            const pad = 18;
+            const usableW = w - pad * 2;
+            const usableH = h - pad * 2;
 
-    // Line style
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+            // Line style
+            ctx.strokeStyle = "#38bdf8";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
 
-    values.forEach((v, i) => {
-      const x = pad + (usableW * (i / Math.max(values.length - 1, 1)));
-      const t = (v - min) / (max - min);
-      const y = pad + (usableH * (1 - t));
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
+            values.forEach((v, i) => {
+                const x = pad + (usableW * (i / Math.max(values.length - 1, 1)));
+                const t = (v - min) / (max - min);
+                const y = pad + (usableH * (1 - t));
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
 
-    // Latest value label
-    ctx.fillStyle = "#e5e7eb";
-    ctx.font = "16px Segoe UI, Arial";
-    const latest = values[values.length - 1];
-    ctx.fillText(String(latest), pad, pad - 2);
-  }
+            // Latest value label
+            ctx.fillStyle = "#e5e7eb";
+            ctx.font = "16px Segoe UI, Arial";
+            const latest = values[values.length - 1];
+            ctx.fillText(String(latest), pad, pad - 2);
+        }
 
-  // Keep last N points for charts
-  const MAX_POINTS = 60;
-  const fpsSeries = [];
-  const latencySeries = [];
+        // Keep last N points for charts
+        const MAX_POINTS = 60;
+        const fpsSeries = [];
+        const latencySeries = [];
 
-  const fpsCanvas = document.getElementById("fpsChart");
-  const latencyCanvas = document.getElementById("latencyChart");
+        const fpsCanvas = document.getElementById("fpsChart");
+        const latencyCanvas = document.getElementById("latencyChart");
 
-  // ---------- SignalR connection ----------
-  // IMPORTANT: this must match Program.cs => app.MapHub<StreamHub>("/streamhub");
-  const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/streamhub")
-    .withAutomaticReconnect()
-    .build();
+        // ---------- SignalR connection ----------
+        // IMPORTANT: this must match Program.cs => app.MapHub<StreamHub>("/streamhub");
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streamhub")
+            .withAutomaticReconnect()
+            .build();
 
-  connection.onreconnecting(() => {
-    connEl.textContent = "Reconnecting…";
-    dotEl.classList.remove("ok");
-  });
+        connection.onreconnecting(() => {
+            connEl.textContent = "Reconnecting…";
+            dotEl.classList.remove("ok");
+        });
 
-  connection.onreconnected(() => {
-    connEl.textContent = "Connected";
-    dotEl.classList.add("ok");
-  });
+        connection.onreconnected(() => {
+            connEl.textContent = "Connected";
+            dotEl.classList.add("ok");
+        });
 
-  connection.onclose(() => {
-    connEl.textContent = "Disconnected";
-    dotEl.classList.remove("ok");
-  });
+        connection.onclose(() => {
+            connEl.textContent = "Disconnected";
+            dotEl.classList.remove("ok");
+        });
 
-  // Server → Browser: latest frame payload
-  connection.on("Frame", frame => {
-    frameEl.textContent = JSON.stringify(frame, null, 2);
-  });
+        // Server → Browser: latest frame payload
+        connection.on("Frame", frame => {
+            frameEl.textContent = JSON.stringify(frame, null, 2);
+        });
 
-  // Server → Browser: telemetry payload
-  connection.on("Telemetry", t => {
-    telemetryEl.textContent = JSON.stringify(t, null, 2);
+        // Server → Browser: telemetry payload
+        connection.on("Telemetry", t => {
+            telemetryEl.textContent = JSON.stringify(t, null, 2);
 
-    // Update KPI tiles (defensive: tolerate missing fields)
-    if (typeof t.fps !== "undefined") fpsEl.textContent = t.fps;
-    if (typeof t.latencyMs !== "undefined") latencyEl.textContent = t.latencyMs;
-    if (typeof t.droppedFrames !== "undefined") droppedEl.textContent = t.droppedFrames;
+            // Update KPI tiles (defensive: tolerate missing fields)
+            if (typeof t.fps !== "undefined") fpsEl.textContent = t.fps;
+            if (typeof t.latencyMs !== "undefined") latencyEl.textContent = t.latencyMs;
+            if (typeof t.droppedFrames !== "undefined") droppedEl.textContent = t.droppedFrames;
 
-    // Update chart series
-    if (typeof t.fps === "number") {
-      fpsSeries.push(t.fps);
-      if (fpsSeries.length > MAX_POINTS) fpsSeries.shift();
-      drawLineChart(fpsCanvas, fpsSeries);
-    }
-    if (typeof t.latencyMs === "number") {
-      latencySeries.push(t.latencyMs);
-      if (latencySeries.length > MAX_POINTS) latencySeries.shift();
-      drawLineChart(latencyCanvas, latencySeries);
-    }
-  });
+            // Update chart series
+            if (typeof t.fps === "number") {
+                fpsSeries.push(t.fps);
+                if (fpsSeries.length > MAX_POINTS) fpsSeries.shift();
+                drawLineChart(fpsCanvas, fpsSeries);
+            }
+            if (typeof t.latencyMs === "number") {
+                latencySeries.push(t.latencyMs);
+                if (latencySeries.length > MAX_POINTS) latencySeries.shift();
+                drawLineChart(latencyCanvas, latencySeries);
+            }
+        });
 
-  async function start() {
-    try {
-      await connection.start();
-      connEl.textContent = "Connected";
-      dotEl.classList.add("ok");
-    } catch (err) {
-      connEl.textContent = "Failed to connect";
-      dotEl.classList.remove("ok");
-      console.error(err);
-      setTimeout(start, 2000);
-    }
-  }
+        async function start() {
+            try {
+                await connection.start();
+                connEl.textContent = "Connected";
+                dotEl.classList.add("ok");
+            } catch (err) {
+                connEl.textContent = "Failed to connect";
+                dotEl.classList.remove("ok");
+                console.error(err);
+                setTimeout(start, 2000);
+            }
+        }
 
-  start();
+        start();
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StreamBridge VisionOps Dashboard</title>
+    <style>
+        :root {
+            --bg: #07101f;
+            --panel: #0f172a;
+            --border: #1e293b;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --good: #22c55e;
+            --warn: #f59e0b;
+            --bad: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Segoe UI,Roboto,Arial,sans-serif;
+            background: radial-gradient(900px 400px at 15% 0%, rgba(56,189,248,.18), transparent 60%), radial-gradient(700px 350px at 85% 15%, rgba(34,197,94,.10), transparent 60%), var(--bg);
+            color: var(--text);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(2,6,23,.75);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(56,189,248,.20), rgba(34,197,94,.10));
+            color: var(--accent);
+            font-weight: 800;
+        }
+
+        .btn {
+            text-decoration: none;
+            color: var(--text);
+            border: 1px solid var(--border);
+            background: rgba(15,23,42,.55);
+            padding: 10px 14px;
+            border-radius: 12px;
+        }
+
+        .wrap {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr .9fr .7fr;
+            gap: 18px;
+        }
+
+        .panel {
+            background: linear-gradient(180deg, rgba(15,23,42,.94), rgba(2,6,23,.45));
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 14px 34px rgba(0,0,0,.28);
+        }
+
+            .panel h2 {
+                margin: 0 0 12px;
+                font-size: 13px;
+                color: var(--muted);
+                letter-spacing: .3px;
+                text-transform: uppercase;
+            }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2,1fr);
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .metric-card {
+            background: rgba(2,6,23,.30);
+            border: 1px solid rgba(30,41,59,.9);
+            border-radius: 14px;
+            padding: 14px;
+        }
+
+            .metric-card .label {
+                font-size: 12px;
+                color: var(--muted);
+            }
+
+            .metric-card .value {
+                font-size: 28px;
+                font-weight: 800;
+                margin-top: 6px;
+            }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(30,41,59,.9);
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(2,6,23,.28);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: var(--bad);
+        }
+
+            .dot.ok {
+                background: var(--good);
+            }
+
+        .visual-stage {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid rgba(30,41,59,.9);
+            background: #0b1220;
+        }
+
+            .visual-stage img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .bbox {
+            position: absolute;
+            border: 2px solid #38bdf8;
+            box-shadow: 0 0 0 1px rgba(56,189,248,.25), 0 0 12px rgba(56,189,248,.35);
+            border-radius: 8px;
+        }
+
+            .bbox .tag {
+                position: absolute;
+                top: -26px;
+                left: 0;
+                background: rgba(2,6,23,.9);
+                color: #e5e7eb;
+                border: 1px solid rgba(56,189,248,.45);
+                padding: 4px 8px;
+                font-size: 11px;
+                border-radius: 8px;
+                white-space: nowrap;
+            }
+
+        .chart {
+            height: 220px;
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(30,41,59,.9);
+            background: rgba(2,6,23,.28);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .item {
+            border: 1px solid rgba(30,41,59,.85);
+            background: rgba(2,6,23,.28);
+            border-radius: 14px;
+            padding: 12px;
+        }
+
+        .alert-info {
+            border-left: 4px solid var(--accent);
+        }
+
+        .alert-warning {
+            border-left: 4px solid var(--warn);
+        }
+
+        .alert-critical {
+            border-left: 4px solid var(--bad);
+        }
+
+        .alert-status {
+            border-left: 4px solid var(--good);
+        }
+
+        .small {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .pre {
+            white-space: pre-wrap;
+            margin: 0;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+        }
+
+        @media (max-width:1100px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <div class="logo">SB</div>
+            <div>
+                <div style="font-weight:800;">StreamBridge VisionOps</div>
+                <div class="small">AI telemetry dashboard MVP</div>
+            </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="status-pill"><span id="connDot" class="dot"></span><span id="connText">Connecting...</span></div>
+            <a class="btn" href="/">Back to Landing</a>
+        </div>
+    </header>
+
+    <div class="wrap">
+        <div class="metrics">
+            <div class="metric-card"><div class="label">Inference FPS</div><div id="fpsValue" class="value">--</div></div>
+            <div class="metric-card"><div class="label">Latency (ms)</div><div id="latencyValue" class="value">--</div></div>
+            <div class="metric-card"><div class="label">Dropped Frames</div><div id="droppedValue" class="value">--</div></div>
+            <div class="metric-card"><div class="label">Active Detections</div><div id="activeValue" class="value">--</div></div>
+        </div>
+
+        <div class="grid">
+            <section class="panel">
+                <h2>Vision Feed</h2>
+                <div class="visual-stage">
+                    <img id="sceneImage" alt="Scene feed" />
+                    <div id="overlay" class="overlay"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;">
+                    <div class="item"><div class="small">Source</div><div id="sourceText" style="font-weight:800;margin-top:6px;">--</div></div>
+                    <div class="item"><div class="small">Top Class</div><div id="topClassText" style="font-weight:800;margin-top:6px;">--</div></div>
+                    <div class="item"><div class="small">Model Status</div><div id="modelStatusText" style="font-weight:800;margin-top:6px;">--</div></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Performance Trends</h2>
+                <div class="item">
+                    <div class="small" style="margin-bottom:8px;">FPS (last 40 samples)</div>
+                    <div class="chart"><canvas id="fpsChart" width="700" height="220"></canvas></div>
+                </div>
+                <div class="item" style="margin-top:12px;">
+                    <div class="small" style="margin-bottom:8px;">Latency (last 40 samples)</div>
+                    <div class="chart"><canvas id="latencyChart" width="700" height="220"></canvas></div>
+                </div>
+                <div class="item" style="margin-top:12px;">
+                    <div class="small" style="margin-bottom:8px;">Latest Frame Payload</div>
+                    <pre id="frameJson" class="pre">Waiting for frame...</pre>
+                </div>
+            </section>
+
+            <section class="panel">
+                <h2>Alerts & Detection Summary</h2>
+                <div class="item">
+                    <div class="small">Stream Quality</div>
+                    <div id="qualityText" style="font-weight:800;margin-top:6px;">--</div>
+                </div>
+                <div class="item" style="margin-top:12px;">
+                    <div class="small">Detections</div>
+                    <div id="detectionsList" class="list" style="margin-top:10px;"></div>
+                </div>
+                <div class="item" style="margin-top:12px;">
+                    <div class="small">Live Alerts</div>
+                    <div id="alertsList" class="list" style="margin-top:10px;"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script>
+        const connText = document.getElementById("connText");
+        const connDot = document.getElementById("connDot");
+
+        const fpsValue = document.getElementById("fpsValue");
+        const latencyValue = document.getElementById("latencyValue");
+        const droppedValue = document.getElementById("droppedValue");
+        const activeValue = document.getElementById("activeValue");
+
+        const sourceText = document.getElementById("sourceText");
+        const topClassText = document.getElementById("topClassText");
+        const modelStatusText = document.getElementById("modelStatusText");
+        const qualityText = document.getElementById("qualityText");
+
+        const sceneImage = document.getElementById("sceneImage");
+        const overlay = document.getElementById("overlay");
+        const frameJson = document.getElementById("frameJson");
+        const detectionsList = document.getElementById("detectionsList");
+        const alertsList = document.getElementById("alertsList");
+
+        const fpsSeries = [];
+        const latencySeries = [];
+        const MAX_POINTS = 40;
+
+        function updateConnection(connected, text) {
+            connText.textContent = text;
+            connDot.classList.toggle("ok", connected);
+        }
+
+        function createDetectionCard(detection) {
+            const el = document.createElement("div");
+            el.className = "item";
+            el.innerHTML = `
+          <div style="font-weight:700;">${detection.label}</div>
+          <div class="small" style="margin-top:4px;">Confidence: ${(detection.confidence * 100).toFixed(0)}%</div>
+        `;
+            return el;
+        }
+
+        function renderAlerts(alerts) {
+            alertsList.innerHTML = "";
+            alerts.forEach(alert => {
+                const el = document.createElement("div");
+                const severityClass =
+                    alert.severity.toLowerCase() === "critical" ? "alert-critical" :
+                        alert.severity.toLowerCase() === "warning" ? "alert-warning" :
+                            alert.severity.toLowerCase() === "status" ? "alert-status" :
+                                "alert-info";
+
+                el.className = `item ${severityClass}`;
+                el.innerHTML = `
+            <div style="font-weight:700;">${alert.severity}</div>
+            <div class="small" style="margin-top:6px;">${alert.message}</div>
+          `;
+                alertsList.appendChild(el);
+            });
+        }
+
+        function renderDetections(detections) {
+            detectionsList.innerHTML = "";
+            detections.forEach(d => detectionsList.appendChild(createDetectionCard(d)));
+        }
+
+        function renderBoxes(detections) {
+            overlay.innerHTML = "";
+
+            detections.forEach(d => {
+                const box = document.createElement("div");
+                box.className = "bbox";
+                box.style.left = `${d.x}%`;
+                box.style.top = `${d.y}%`;
+                box.style.width = `${d.width}%`;
+                box.style.height = `${d.height}%`;
+
+                const tag = document.createElement("div");
+                tag.className = "tag";
+                tag.textContent = `${d.label} ${(d.confidence * 100).toFixed(0)}%`;
+
+                box.appendChild(tag);
+                overlay.appendChild(box);
+            });
+        }
+
+        function drawLineChart(canvasId, values, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext("2d");
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.strokeStyle = "rgba(148,163,184,0.25)";
+            ctx.lineWidth = 1;
+
+            for (let i = 1; i < 5; i++) {
+                const y = (h / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(w, y);
+                ctx.stroke();
+            }
+
+            if (!values.length) return;
+
+            let min = Math.min(...values);
+            let max = Math.max(...values);
+            if (min === max) { min -= 1; max += 1; }
+
+            const pad = 18;
+            const usableW = w - pad * 2;
+            const usableH = h - pad * 2;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+
+            values.forEach((value, index) => {
+                const x = pad + usableW * (index / Math.max(values.length - 1, 1));
+                const t = (value - min) / (max - min);
+                const y = pad + usableH * (1 - t);
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+
+            ctx.stroke();
+
+            ctx.fillStyle = "#e5e7eb";
+            ctx.font = "15px Segoe UI";
+            ctx.fillText(String(values[values.length - 1]), pad, pad - 2);
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/streamhub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("Frame", frame => {
+            sceneImage.src = frame.imageUrl;
+            sourceText.textContent = frame.source;
+            activeValue.textContent = frame.detections.length;
+            frameJson.textContent = JSON.stringify(frame, null, 2);
+
+            renderBoxes(frame.detections);
+            renderDetections(frame.detections);
+        });
+
+        connection.on("Telemetry", telemetry => {
+            fpsValue.textContent = telemetry.fps;
+            latencyValue.textContent = telemetry.latencyMs;
+            droppedValue.textContent = telemetry.droppedFrames;
+            topClassText.textContent = telemetry.topClass;
+            modelStatusText.textContent = telemetry.modelStatus;
+            qualityText.textContent = telemetry.streamQuality;
+
+            fpsSeries.push(telemetry.fps);
+            if (fpsSeries.length > MAX_POINTS) fpsSeries.shift();
+
+            latencySeries.push(telemetry.latencyMs);
+            if (latencySeries.length > MAX_POINTS) latencySeries.shift();
+
+            drawLineChart("fpsChart", fpsSeries, "#38bdf8");
+            drawLineChart("latencyChart", latencySeries, "#22c55e");
+        });
+
+        connection.on("Alerts", alerts => {
+            renderAlerts(alerts);
+        });
+
+        connection.onreconnecting(() => updateConnection(false, "Reconnecting..."));
+        connection.onreconnected(() => updateConnection(true, "Connected"));
+        connection.onclose(() => updateConnection(false, "Disconnected"));
+
+        async function start() {
+            try {
+                await connection.start();
+                updateConnection(true, "Connected");
+            } catch (error) {
+                updateConnection(false, "Connection Failed");
+                console.error(error);
+                setTimeout(start, 2000);
+            }
+        }
+
+        start();
     </script>
 </body>
 </html>
