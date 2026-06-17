@@ -20,5 +20,5 @@ app.MapHub<StreamHub>("/streamhub");
 var frameService = app.Services.GetRequiredService<FrameStreamService>();
 frameService.Start();
 
-// Start the web server
+// Start the we server
 app.Run();
