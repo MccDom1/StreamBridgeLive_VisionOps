@@ -11,7 +11,7 @@ var app = builder.Build();
 
 // Allow serving files from wwwroot
 app.UseDefaultFiles();
-app.UseStaticFiles();
+app.UseStaticFiles()
 
 // Map SignalR hub endpoint
 app.MapHub<StreamHub>("/streamhub");
