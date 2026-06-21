@@ -18,7 +18,7 @@ app.MapHub<StreamHub>("/streamhub");
 
 // Start the telemetry service when app starts
 var frameService = app.Services.GetRequiredService<FrameStreamService>();
-frameService.Start()
+frameService.Start();
 
 // Start the web server
 app.Run();
