@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<FrameStreamService>();
 
-var app = builder.Build()
+var app = builder.Build();
 
 // Allow serving files from wwwroot
 app.UseDefaultFiles();
