@@ -4,7 +4,7 @@ using StreamBridgeLive_VisionOps.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register services
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
 builder.Services.AddSingleton<FrameStreamService>();
 
 var app = builder.Build();
