@@ -1,5 +1,5 @@
 using StreamBridgeLive_VisionOps.Hubs;
-using StreamBridgeLive_VisionOps.Services
+using StreamBridgeLive_VisionOps.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
