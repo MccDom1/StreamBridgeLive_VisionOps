@@ -14,7 +14,7 @@ app.UseDefaultFiles();
 app.UseStaticFiles();
 
 // Map SignalR hub endpoint
-app.MapHub<StreamHub>("/streamhub")
+app.MapHub<StreamHub>("/streamhub");
 
 // Start the telemetry service when app starts
 var frameService = app.Services.GetRequiredService<FrameStreamService>();
