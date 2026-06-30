@@ -21,4 +21,4 @@ var frameService = app.Services.GetRequiredService<FrameStreamService>();
 frameService.Start();
 
 // Start the web server
-app.Run();
+app.Run()
